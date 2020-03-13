@@ -14,6 +14,14 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Contacts"),
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(
+                Icons.settings,
+                size: 30,
+              ),
+              onPressed: null)
+        ],
       ),
       body: ListView.builder(
           itemCount: 15,
@@ -27,7 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: null,
+        onPressed: () {
+          Navigator.pushNamed(context, 'addContact');
+        },
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),
