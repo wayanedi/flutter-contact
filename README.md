@@ -1,6 +1,6 @@
 # contact
 
-A new Flutter project.
+contact app using flutter
 
 ## Getting Started
 
