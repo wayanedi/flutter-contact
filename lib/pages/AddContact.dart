@@ -122,14 +122,6 @@ class AddContactState extends State<AddContact> {
           );
         });
 
-    ListView content = ListView(
-      padding: EdgeInsets.all(20),
-      children: <Widget>[
-        SizedBox(height: 20),
-        picture,
-        Expanded(child: phone),
-      ],
-    );
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
@@ -154,6 +146,7 @@ class AddContactState extends State<AddContact> {
         ],
       ),
       body: Container(
+        padding: EdgeInsets.all(10),
         child: Column(
           children: <Widget>[
             picture,
