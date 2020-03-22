@@ -1,4 +1,5 @@
 import 'package:contact/pages/AddContact.dart';
+import 'package:contact/pages/CategoryPage.dart';
 import 'package:contact/pages/MyHomePage.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         '/': (context) => MyHomePage(),
         'addContact': (context) => AddContact(),
+        'categoryPage': (context) => CategoryPage(),
       },
     );
     return materialApp;

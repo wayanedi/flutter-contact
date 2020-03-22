@@ -20,7 +20,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Icons.settings,
                 size: 30,
               ),
-              onPressed: null)
+              onPressed: () {
+                Navigator.pushNamed(context, 'categoryPage');
+              })
         ],
       ),
       body: ListView.builder(
@@ -31,6 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 leading: FlutterLogo(size: 72.0),
                 title: Text('wayan edi sudarma'),
                 subtitle: Text('081311902630989895656'),
+                trailing: Text("keluarga"),
               ),
             );
           }),
