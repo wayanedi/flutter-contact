@@ -2,8 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:masked_text/masked_text.dart';
 
-class AddContact extends StatelessWidget {
+class AddContact extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return AddContactState();
+  }
+}
+
+class AddContactState extends State<AddContact> {
   final _formKey = GlobalKey<FormState>();
+  List<DynamicInputPhone> inputDynamic = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    inputDynamic.add(DynamicInputPhone());
+
+    setState(() {});
+    super.initState();
+  }
+
+  void addNewPhoneField() {
+    if (inputDynamic.length < 3) {
+      inputDynamic.add(DynamicInputPhone());
+      setState(() {});
+    }
+  }
+
+  void removePhoneField(int index) {
+    if (inputDynamic.length > 1) {
+      inputDynamic.removeAt(index);
+      setState(() {});
+    }
+  }
+
+  void saveContact() {
+    inputDynamic.forEach((widget) => print(widget.controller.text));
+  }
+
   @override
   Widget build(BuildContext context) {
     final picture = Column(
@@ -70,20 +107,27 @@ class AddContact extends StatelessWidget {
       ),
     );
 
+    ListView phone = ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: inputDynamic.length,
+        itemBuilder: (BuildContext context, int index) {
+          return ListTile(
+            leading: Icon(Icons.phone),
+            title: inputDynamic[index],
+            trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  removePhoneField(index);
+                }),
+          );
+        });
+
     ListView content = ListView(
       padding: EdgeInsets.all(20),
       children: <Widget>[
         SizedBox(height: 20),
         picture,
-        Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                inputName,
-                inputPhoneNumber,
-                inputEmail,
-              ],
-            ))
+        Expanded(child: phone),
       ],
     );
     // TODO: implement build
@@ -104,13 +148,47 @@ class AddContact extends StatelessWidget {
                   size: 35,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  saveContact();
                 }),
           )
         ],
       ),
       body: Container(
-        child: content,
+        child: Column(
+          children: <Widget>[
+            picture,
+            inputName,
+            inputEmail,
+            Expanded(child: phone),
+            RaisedButton(
+              child: Text("Add Phone"),
+              onPressed: () {
+                addNewPhoneField();
+              },
+              color: Colors.blue,
+              textColor: Colors.white,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DynamicInputPhone extends StatelessWidget {
+  TextEditingController controller = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Container(
+      child: MaskedTextField(
+        maskedTextFieldController: controller,
+        mask: "xxxx-xxxx-xxxx",
+        maxLength: 14,
+        keyboardType: TextInputType.phone,
+        inputDecoration: new InputDecoration(
+          labelText: "Telefone",
+        ),
       ),
     );
   }
