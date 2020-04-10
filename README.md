@@ -1,6 +1,6 @@
 # contact
 
-A new Flutter project.
+Contact Management Using Flutter
 
 ## Getting Started
 
