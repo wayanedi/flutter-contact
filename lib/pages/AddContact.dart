@@ -1,26 +1,85 @@
+import 'dart:io';
+import 'package:contact/models/Category.dart';
+import 'package:contact/models/Contact.dart';
+import 'package:contact/models/Phone.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:masked_text/masked_text.dart';
+import 'dart:convert';
+
+import 'package:path_provider/path_provider.dart';
 
 class AddContact extends StatefulWidget {
+  final Contact contact;
+  final List<Category> categoryList;
+
+  AddContact(this.contact, this.categoryList);
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
-    return AddContactState();
+    return AddContactState(this.contact, this.categoryList);
   }
 }
 
 class AddContactState extends State<AddContact> {
-  final _formKey = GlobalKey<FormState>();
+  //final _formKey = GlobalKey<FormState>();
   List<DynamicInputPhone> inputDynamic = [];
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController prioritasController = TextEditingController();
+  Contact contact;
+  String path = null;
+  List<Category> categoryList;
+  List<DropdownMenuItem<Category>> _dropdownMenuItems;
+  Category _selectedCategory;
+  AddContactState(this.contact, this.categoryList);
 
   @override
   void initState() {
-    // TODO: implement initState
-    inputDynamic.add(DynamicInputPhone());
+    _dropdownMenuItems = buildDropdownMenuItems(categoryList);
+    if (contact == null) {
+      inputDynamic.add(DynamicInputPhone());
+      _selectedCategory = _dropdownMenuItems[0].value;
+    } else {
+      var contactJson = jsonDecode(contact.phone)['phone'];
+      List<String> contactList =
+          contactJson != null ? List.from(contactJson) : null;
+      contactList
+          .forEach((val) => inputDynamic.add(DynamicInputPhone(value: val)));
+      nameController.text = contact.name;
+      emailController.text = contact.email;
+      prioritasController.text = contact.prioritas.toString();
+      path = contact.photo;
+      //get index in dropdown items
+      var getCategory = _dropdownMenuItems
+          .firstWhere((val) => val.value.category == contact.nameCategory);
+      var getIndex = _dropdownMenuItems.indexOf(getCategory);
+      _selectedCategory = _dropdownMenuItems[getIndex].value;
+    }
 
     setState(() {});
     super.initState();
+  }
+
+  List<DropdownMenuItem<Category>> buildDropdownMenuItems(
+      List<Category> categories) {
+    List<DropdownMenuItem<Category>> items = List();
+    for (Category category in categories) {
+      items.add(
+        DropdownMenuItem(
+          value: category,
+          child: Text(category.category),
+        ),
+      );
+    }
+    return items;
+  }
+
+  onChangeDropdownItem(Category selectedCategory) {
+    setState(() {
+      _selectedCategory = selectedCategory;
+      print(_selectedCategory.id);
+    });
   }
 
   void addNewPhoneField() {
@@ -37,8 +96,45 @@ class AddContactState extends State<AddContact> {
     }
   }
 
-  void saveContact() {
-    inputDynamic.forEach((widget) => print(widget.controller.text));
+  void saveContact(BuildContext context) {
+    List<String> phone = List<String>();
+    inputDynamic.forEach((widget) => phone.add(widget.controller.text));
+    Phone p = Phone(phone);
+    print(jsonEncode(p));
+
+    if (this.contact == null) {
+      contact = Contact(
+          nameController.text,
+          emailController.text,
+          jsonEncode(p),
+          path,
+          int.parse(prioritasController.text),
+          _selectedCategory.id);
+    } else {
+      contact.photo = path;
+      contact.name = nameController.text;
+      contact.email = emailController.text;
+      contact.prioritas = int.parse(prioritasController.text);
+      contact.phone = jsonEncode(p);
+      contact.idCategory = _selectedCategory.id;
+    }
+    Navigator.pop(context, contact);
+  }
+
+  pickImageFromGallery() async {
+    final File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      if (path != null) {
+        final dir = Directory(path);
+        dir.deleteSync(recursive: true);
+      }
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String appDocPath = appDocDir.path;
+      path =
+          '$appDocPath/${DateTime.now().millisecondsSinceEpoch.toString()}.jpg';
+      await image.copy(path);
+      setState(() {});
+    }
   }
 
   @override
@@ -51,16 +147,20 @@ class AddContactState extends State<AddContact> {
           width: 120.0,
           height: 120.0,
           child: CircleAvatar(
-            child: Icon(
-              Icons.camera_alt,
-            ),
+            child: GestureDetector(
+                child: path == null
+                    ? Icon(Icons.camera_alt)
+                    : Image.file(File(path)),
+                onTap: () {
+                  pickImageFromGallery();
+                }), // icon-2
           ),
         ),
       ],
     );
 
     TextFormField inputName = TextFormField(
-      controller: null,
+      controller: nameController,
       autofocus: true,
       keyboardType: TextInputType.text,
       inputFormatters: [
@@ -79,7 +179,7 @@ class AddContactState extends State<AddContact> {
     );
 
     TextFormField inputEmail = TextFormField(
-      controller: null,
+      controller: emailController,
       inputFormatters: [
         LengthLimitingTextInputFormatter(50),
       ],
@@ -96,19 +196,41 @@ class AddContactState extends State<AddContact> {
       },
     );
 
-    MaskedTextField inputPhoneNumber = new MaskedTextField(
-      maskedTextFieldController: null,
-      mask: "xxxx-xxxx-xxxx",
-      maxLength: 12,
-      keyboardType: TextInputType.phone,
-      inputDecoration: new InputDecoration(
-        labelText: "Telefone",
-        icon: Icon(Icons.phone),
+    TextFormField prioritas = TextFormField(
+      controller: prioritasController,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(3),
+      ],
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: 'Prioritas',
+        icon: Icon(Icons.priority_high),
+      ),
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Please enter your Email';
+        }
+        return null;
+      },
+    );
+
+    SizedBox button = SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        spacing: 20,
+        children: <Widget>[
+          Icon(Icons.category),
+          DropdownButton(
+            value: _selectedCategory,
+            items: _dropdownMenuItems,
+            onChanged: onChangeDropdownItem,
+          ),
+        ],
       ),
     );
 
     ListView phone = ListView.builder(
-        padding: const EdgeInsets.all(8),
+        //padding: const EdgeInsets.all(8),
         itemCount: inputDynamic.length,
         itemBuilder: (BuildContext context, int index) {
           return ListTile(
@@ -122,8 +244,8 @@ class AddContactState extends State<AddContact> {
           );
         });
 
-    // TODO: implement build
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
@@ -131,7 +253,7 @@ class AddContactState extends State<AddContact> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text("Add Contact"),
+        title: contact == null ? Text("Add Contact") : Text("Edit Contact"),
         actions: <Widget>[
           Container(
             child: IconButton(
@@ -140,7 +262,7 @@ class AddContactState extends State<AddContact> {
                   size: 35,
                 ),
                 onPressed: () {
-                  saveContact();
+                  saveContact(context);
                 }),
           )
         ],
@@ -152,6 +274,8 @@ class AddContactState extends State<AddContact> {
             picture,
             inputName,
             inputEmail,
+            prioritas,
+            button,
             Expanded(child: phone),
             RaisedButton(
               child: Text("Add Phone"),
@@ -169,10 +293,14 @@ class AddContactState extends State<AddContact> {
 }
 
 class DynamicInputPhone extends StatelessWidget {
-  TextEditingController controller = TextEditingController();
+  final TextEditingController controller = TextEditingController();
+
+  DynamicInputPhone({String value = null}) {
+    if (value != null) controller.text = value;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Container(
       child: MaskedTextField(
         maskedTextFieldController: controller,
