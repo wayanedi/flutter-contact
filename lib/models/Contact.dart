@@ -13,7 +13,7 @@ class Contact implements Comparable<Contact> {
 
   @override
   int compareTo(Contact other) {
-    int diff = this._prioritas - other.prioritas;
+    int diff = other.prioritas - this._prioritas;
 
     return (diff == 0 ? this._name.compareTo(other.name) : diff);
   }

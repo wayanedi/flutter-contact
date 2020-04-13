@@ -25,9 +25,15 @@ class SettingPageState extends State<SettingPage> {
 
     SharedPreferences.getInstance().then((val) {
       sp = val;
-      _selectedCategory = sp.getInt("category") != null
-          ? _dropdownMenuItems[sp.getInt("category")].value
-          : _selectedCategory = _dropdownMenuItems[0].value;
+      if (sp.getInt('category') == null) {
+        _selectedCategory = _dropdownMenuItems[0].value;
+      } else {
+        var getCategory = _dropdownMenuItems
+            .firstWhere((val) => val.value.id == sp.getInt('category'));
+        var getIndex = _dropdownMenuItems.indexOf(getCategory);
+        print("index: $getIndex");
+        _selectedCategory = _dropdownMenuItems[getIndex].value;
+      }
       setState(() {});
     });
 
