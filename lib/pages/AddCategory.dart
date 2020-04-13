@@ -18,6 +18,7 @@ class AddCategoryState extends State<AddCategory> {
     print("ini add category page");
   }
   TextEditingController controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,7 @@ class AddCategoryState extends State<AddCategory> {
       ),
       validator: (value) {
         if (value.isEmpty) {
-          return 'Please enter your Name';
+          return 'Please enter Category';
         }
         return null;
       },
@@ -45,12 +46,14 @@ class AddCategoryState extends State<AddCategory> {
 
     RaisedButton button = RaisedButton.icon(
       onPressed: () {
-        if (category == null) {
-          category = Category(controller.text);
-        } else {
-          category.category = controller.text;
+        if (_formKey.currentState.validate()) {
+          if (category == null) {
+            category = Category(controller.text);
+          } else {
+            category.category = controller.text;
+          }
+          Navigator.pop(context, category);
         }
-        Navigator.pop(context, category);
       },
       icon: Icon(Icons.save),
       label: Text("save"),
@@ -62,13 +65,16 @@ class AddCategoryState extends State<AddCategory> {
           title:
               category == null ? Text("Add Category") : Text("Update Category"),
         ),
-        body: Container(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: <Widget>[
-              inputCategory,
-              button,
-            ],
+        body: Form(
+          key: _formKey,
+          child: Container(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: <Widget>[
+                inputCategory,
+                button,
+              ],
+            ),
           ),
         ));
   }

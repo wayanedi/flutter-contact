@@ -187,10 +187,15 @@ class _MyHomePageState extends State<MyHomePage> {
           itemBuilder: (BuildContext context, int index) {
             return Card(
               child: ListTile(
-                leading: Image.file(
-                  File(contactList[index].photo),
-                  width: 50,
-                ),
+                leading: contactList[index].photo != null
+                    ? Image.file(
+                        File(contactList[index].photo),
+                        width: 50,
+                      )
+                    : Icon(
+                        Icons.account_box,
+                        size: 50,
+                      ),
                 title: Text(contactList[index].name),
                 subtitle: Text(
                   contactList[index].nameCategory,
@@ -223,9 +228,15 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           List<Category> categoryList = await _dbHelper.getCategoryList();
-          var contact = await navigateToEntryForm(context, null, categoryList);
-          if (contact != null) {
-            addContact(contact);
+          if (categoryList.length > 0) {
+            var contact =
+                await navigateToEntryForm(context, null, categoryList);
+            if (contact != null) {
+              addContact(contact);
+            }
+          } else {
+            Toast.show("Silahkan tambahkan category terlebih dahulu", context,
+                duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
           }
         },
         tooltip: 'Increment',

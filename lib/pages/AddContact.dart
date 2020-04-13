@@ -32,6 +32,7 @@ class AddContactState extends State<AddContact> {
   List<Category> categoryList;
   List<DropdownMenuItem<Category>> _dropdownMenuItems;
   Category _selectedCategory;
+  final _formKey = GlobalKey<FormState>();
   AddContactState(this.contact, this.categoryList);
 
   @override
@@ -97,28 +98,37 @@ class AddContactState extends State<AddContact> {
   }
 
   void saveContact(BuildContext context) {
-    List<String> phone = List<String>();
-    inputDynamic.forEach((widget) => phone.add(widget.controller.text));
-    Phone p = Phone(phone);
-    print(jsonEncode(p));
+    int phoneValidate = 0;
+    inputDynamic.forEach((key) {
+      if (key._formKey.currentState.validate()) {
+        phoneValidate += 1;
+      }
+    });
+    if (_formKey.currentState.validate() &&
+        phoneValidate == inputDynamic.length) {
+      List<String> phone = List<String>();
+      inputDynamic.forEach((widget) => phone.add(widget.controller.text));
+      Phone p = Phone(phone);
+      print(jsonEncode(p));
 
-    if (this.contact == null) {
-      contact = Contact(
-          nameController.text,
-          emailController.text,
-          jsonEncode(p),
-          path,
-          int.parse(prioritasController.text),
-          _selectedCategory.id);
-    } else {
-      contact.photo = path;
-      contact.name = nameController.text;
-      contact.email = emailController.text;
-      contact.prioritas = int.parse(prioritasController.text);
-      contact.phone = jsonEncode(p);
-      contact.idCategory = _selectedCategory.id;
+      if (this.contact == null) {
+        contact = Contact(
+            nameController.text,
+            emailController.text,
+            jsonEncode(p),
+            path,
+            int.parse(prioritasController.text),
+            _selectedCategory.id);
+      } else {
+        contact.photo = path;
+        contact.name = nameController.text;
+        contact.email = emailController.text;
+        contact.prioritas = int.parse(prioritasController.text);
+        contact.phone = jsonEncode(p);
+        contact.idCategory = _selectedCategory.id;
+      }
+      Navigator.pop(context, contact);
     }
-    Navigator.pop(context, contact);
   }
 
   pickImageFromGallery() async {
@@ -208,7 +218,10 @@ class AddContactState extends State<AddContact> {
       ),
       validator: (value) {
         if (value.isEmpty) {
-          return 'Please enter your Email';
+          return 'Please enter prioritas';
+        }
+        if (int.parse(value) <= 0 || int.parse(value) > 100) {
+          return 'prioritas must between 1-100';
         }
         return null;
       },
@@ -267,25 +280,28 @@ class AddContactState extends State<AddContact> {
           )
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          children: <Widget>[
-            picture,
-            inputName,
-            inputEmail,
-            prioritas,
-            button,
-            Expanded(child: phone),
-            RaisedButton(
-              child: Text("Add Phone"),
-              onPressed: () {
-                addNewPhoneField();
-              },
-              color: Colors.blue,
-              textColor: Colors.white,
-            )
-          ],
+      body: Form(
+        key: _formKey,
+        child: Container(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            children: <Widget>[
+              picture,
+              inputName,
+              inputEmail,
+              prioritas,
+              button,
+              Expanded(child: phone),
+              RaisedButton(
+                child: Text("Add Phone"),
+                onPressed: () {
+                  addNewPhoneField();
+                },
+                color: Colors.blue,
+                textColor: Colors.white,
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -294,21 +310,32 @@ class AddContactState extends State<AddContact> {
 
 class DynamicInputPhone extends StatelessWidget {
   final TextEditingController controller = TextEditingController();
-
+  final _formKey = GlobalKey<FormState>();
   DynamicInputPhone({String value = null}) {
     if (value != null) controller.text = value;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: MaskedTextField(
-        maskedTextFieldController: controller,
-        mask: "xxxx-xxxx-xxxx",
-        maxLength: 14,
-        keyboardType: TextInputType.phone,
-        inputDecoration: new InputDecoration(
-          labelText: "Telefone",
+    return Form(
+      key: _formKey,
+      child: Container(
+        child: TextFormField(
+          controller: controller,
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(12),
+          ],
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Phone',
+            icon: Icon(Icons.priority_high),
+          ),
+          validator: (value) {
+            if (value.isEmpty) {
+              return 'Please enter your Phone Number';
+            }
+            return null;
+          },
         ),
       ),
     );
