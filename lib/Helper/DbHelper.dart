@@ -115,6 +115,13 @@ class DbHelper {
     return count;
   }
 
+  Future<int> deleteContactByCategory(int id) async {
+    Database db = await this.database;
+    int count =
+        await db.delete('contact', where: 'id_category=?', whereArgs: [id]);
+    return count;
+  }
+
   Future<int> updateContact(Contact object) async {
     Database db = await this.database;
     int count = await db.update('contact', object.toMap(),

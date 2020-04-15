@@ -49,6 +49,7 @@ class CategoryPageState extends State<CategoryPage> {
           duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
       updateListCategory();
     }
+    int result2 = await _dbHelper.deleteContactByCategory(category.id);
   }
 
   void updateListCategory() {
@@ -79,7 +80,8 @@ class CategoryPageState extends State<CategoryPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Delete'),
-          content: Text("Are You Sure Want To Proceed ?"),
+          content: Text(
+              "This action will cause all contacts in this category to be deleted, Are You Sure Want To Proceed ?"),
           actions: <Widget>[
             FlatButton(
               child: Text("YES"),

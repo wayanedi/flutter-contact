@@ -3,6 +3,7 @@ import 'package:contact/Helper/DbHelper.dart';
 import 'package:contact/models/Category.dart';
 import 'package:contact/models/Contact.dart';
 import 'package:contact/pages/AddContact.dart';
+import 'package:contact/pages/CategoryPage.dart';
 import 'package:contact/pages/SettingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -38,8 +39,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void deleteContact(Contact contact) async {
-    final dir = Directory(contact.photo);
-    dir.deleteSync(recursive: true);
+    if (contact.photo != null) {
+      final dir = Directory(contact.photo);
+      dir.deleteSync(recursive: true);
+    }
     int result = await _dbHelper.deleteContact(contact.id);
     if (result > 0) {
       print("berhasil menghapus kontak");
@@ -134,7 +137,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void cekListSelect(WhyFarther select) async {
     switch (select) {
       case WhyFarther.category:
-        Navigator.pushNamed(context, 'categoryPage');
+        await Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return CategoryPage();
+        }));
+        updateListContact(idPriority);
         break;
       case WhyFarther.setting:
         List<Category> categoryList = await _dbHelper.getCategoryList();
